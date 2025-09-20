@@ -1,2 +1,7 @@
-# GinkgoImageConverter
-A beautiful Image Converter. 银杏图片转换器。
+# Ginkgo Image Converter
+A beautiful image converter
+
+Convert image as you want!
+
+![image info](./Screenshot/en.jpg)
+![image info](./Screenshot/zh.jpg)

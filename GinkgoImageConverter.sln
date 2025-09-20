@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11012.119 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GinkgoImageConverter", "GinkgoImageConverter\GinkgoImageConverter.csproj", "{58C37BFC-5F8E-4AEC-AB1F-51A9E50DFFD0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{58C37BFC-5F8E-4AEC-AB1F-51A9E50DFFD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58C37BFC-5F8E-4AEC-AB1F-51A9E50DFFD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58C37BFC-5F8E-4AEC-AB1F-51A9E50DFFD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58C37BFC-5F8E-4AEC-AB1F-51A9E50DFFD0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {43BEBC4B-DA73-4974-87DF-70EFD8170E70}
+	EndGlobalSection
+EndGlobal

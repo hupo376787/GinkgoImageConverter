@@ -1,0 +1,75 @@
+﻿<Application
+  x:Class="GinkgoImageConverter.App"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="clr-namespace:GinkgoImageConverter"
+  xmlns:mica="clr-namespace:MicaWPF.Styles;assembly=MicaWPF"
+  StartupUri="MainWindow.xaml">
+  <Application.Resources>
+    <ResourceDictionary>
+      <!--  圆形按钮样式  -->
+      <Style x:Key="CustomCornerButtonStyle" TargetType="Button">
+        <Setter Property="Width" Value="60" />
+        <Setter Property="Height" Value="60" />
+        <Setter Property="Background" Value="#FFBF00" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Opacity" Value="0.8" />
+        <Setter Property="local:ButtonExtensions.CornerRadius" Value="30" />
+        <!--  默认圆角  -->
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="Button">
+              <Grid>
+                <!--  圆角背景  -->
+                <Border
+                  x:Name="ButtonBorder"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="Gray"
+                  BorderThickness="0"
+                  CornerRadius="{Binding Path=(local:ButtonExtensions.CornerRadius), RelativeSource={RelativeSource TemplatedParent}}"
+                  Opacity="{TemplateBinding Opacity}">
+                  <!--  可选：磨砂效果  -->
+                  <!--<Border.Effect>
+                    <BlurEffect Radius="5" />
+                  </Border.Effect>-->
+                </Border>
+                <!--  按钮内容  -->
+                <ContentPresenter
+                  Margin="0,-2,0,0"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center" />
+              </Grid>
+              <ControlTemplate.Triggers>
+                <!--  鼠标悬停  -->
+                <Trigger Property="IsMouseOver" Value="True">
+                  <Setter TargetName="ButtonBorder" Property="Background" Value="#FFBF00" />
+                  <Setter TargetName="ButtonBorder" Property="Opacity" Value="1.0" />
+                </Trigger>
+                <!--  按下  -->
+                <Trigger Property="IsPressed" Value="True">
+                  <Setter TargetName="ButtonBorder" Property="Background" Value="#FFBF00" />
+                  <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.6" />
+                </Trigger>
+                <!--  禁用  -->
+                <Trigger Property="IsEnabled" Value="False">
+                  <Setter TargetName="ButtonBorder" Property="Background" Value="Gray" />
+                  <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.5" />
+                  <Setter Property="Foreground" Value="LightGray" />
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+
+      <ResourceDictionary.MergedDictionaries>
+        <mica:ThemeDictionary DesignModeTheme="Dark" Theme="Auto" />
+        <!--  And Here (You can change to Light, Dark or auto here)  -->
+        <!-- <mica:ThemeDictionary />  works too-->
+        <mica:ControlsDictionary />
+        <!--  This is mandatory  -->
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>
