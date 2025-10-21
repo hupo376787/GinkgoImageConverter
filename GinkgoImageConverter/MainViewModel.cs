@@ -6,6 +6,7 @@ using SixLabors.ImageSharp;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Windows;
 
 namespace GinkgoImageConverter
@@ -50,82 +51,92 @@ namespace GinkgoImageConverter
         [RelayCommand]
         private async Task StartChange()
         {
-            DateTime date = DateTime.Now;
-
-            // 在循环前，提前根据 ext 和质量构造好 encoder
-            var selectedExt = (SelectedImageFormat ?? "jpeg").ToLowerInvariant();
-
-            // 预缓存 encoder
-            object encoder = selectedExt switch
+            try
             {
-                "jpeg" or "jpg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder
+                DateTime date = DateTime.Now;
+
+                // 捕获选中的扩展名与编码器
+                var selectedExt = (SelectedImageFormat ?? "jpeg").ToLowerInvariant();
+
+                object encoder = selectedExt switch
                 {
-                    Quality = Quality
-                },
-                "bmp" => new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder(),
-                "png" => new SixLabors.ImageSharp.Formats.Png.PngEncoder(),
-                "tiff" => new SixLabors.ImageSharp.Formats.Tiff.TiffEncoder(),
-                "webp" => new SixLabors.ImageSharp.Formats.Webp.WebpEncoder
-                {
-                    Quality = Quality
-                },
-                _ => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
-            };
-
-            // 固定最多 10 个并发
-            var options = new ParallelOptions
-            {
-                MaxDegreeOfParallelism = MaxParallel
-            };
-
-            int processed = 0;
-
-            await Parallel.ForEachAsync(Files, options, async (file, token) =>
-            {
-                var dt = File.GetLastWriteTime(file.Path);
-
-                using (var image = SixLabors.ImageSharp.Image.Load(file.Path))
-                {
-                    string dest = GetUniqueFileName(Path.ChangeExtension(file.Path, SelectedImageFormat));
-                    switch (encoder)
+                    "jpeg" or "jpg" => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder
                     {
-                        case SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder jpeg:
-                            await image.SaveAsJpegAsync(dest, jpeg, token);
-                            break;
-                        case SixLabors.ImageSharp.Formats.Bmp.BmpEncoder bmp:
-                            await image.SaveAsBmpAsync(dest, bmp, token);
-                            break;
-                        case SixLabors.ImageSharp.Formats.Png.PngEncoder png:
-                            await image.SaveAsPngAsync(dest, png, token);
-                            break;
-                        case SixLabors.ImageSharp.Formats.Tiff.TiffEncoder tiff:
-                            await image.SaveAsTiffAsync(dest, tiff, token);
-                            break;
-                        case SixLabors.ImageSharp.Formats.Webp.WebpEncoder webp:
-                            await image.SaveAsWebpAsync(dest, webp, token);
-                            break;
+                        Quality = Quality
+                    },
+                    "bmp" => new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder(),
+                    "png" => new SixLabors.ImageSharp.Formats.Png.PngEncoder(),
+                    "tiff" => new SixLabors.ImageSharp.Formats.Tiff.TiffEncoder(),
+                    "webp" => new SixLabors.ImageSharp.Formats.Webp.WebpEncoder
+                    {
+                        Quality = Quality
+                    },
+                    _ => new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder()
+                };
+
+                // 对 Files 做快照，避免并发枚举时被修改
+                var items = Files.ToArray();
+                var total = items.Length;
+
+                var options = new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = MaxParallel
+                };
+
+                int processed = 0;
+
+                await Parallel.ForEachAsync(items, options, async (file, token) =>
+                {
+                    var dt = File.GetLastWriteTime(file.Path);
+
+                    using (var image = SixLabors.ImageSharp.Image.Load(file.Path))
+                    {
+                        // 使用 selectedExt，避免运行中被用户切换格式导致不一致
+                        string dest = GetUniqueFileName(Path.ChangeExtension(file.Path, selectedExt));
+
+                        switch (encoder)
+                        {
+                            case SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder jpeg:
+                                await image.SaveAsJpegAsync(dest, jpeg, token);
+                                break;
+                            case SixLabors.ImageSharp.Formats.Bmp.BmpEncoder bmp:
+                                await image.SaveAsBmpAsync(dest, bmp, token);
+                                break;
+                            case SixLabors.ImageSharp.Formats.Png.PngEncoder png:
+                                await image.SaveAsPngAsync(dest, png, token);
+                                break;
+                            case SixLabors.ImageSharp.Formats.Tiff.TiffEncoder tiff:
+                                await image.SaveAsTiffAsync(dest, tiff, token);
+                                break;
+                            case SixLabors.ImageSharp.Formats.Webp.WebpEncoder webp:
+                                await image.SaveAsWebpAsync(dest, webp, token);
+                                break;
+                        }
+
+                        if (DeleteSource)
+                            File.Delete(file.Path);
+
+                        File.SetLastWriteTime(dest, dt);
                     }
 
-                    if (DeleteSource)
-                        File.Delete(file.Path);
+                    int current = Interlocked.Increment(ref processed);
 
-                    File.SetLastWriteTime(dest, dt);
-
-                    file.Changed = true;
-                }
-
-                int current = Interlocked.Increment(ref processed);
-                Progress = current * 1.0 / Files.Count;
-
-                // UI 更新必须通过 Dispatcher
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    StatusDescription = LanService.Get("changed_x_files")!
-                        .Replace("{0}", current.ToString());
+                    // 将 UI 更新与对象属性变更放到 UI 线程
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        file.Changed = true;
+                        Progress = total == 0 ? 0 : current * 1.0 / total;
+                        StatusDescription = LanService.Get("changed_x_files")!
+                            .Replace("{0}", current.ToString());
+                    });
                 });
-            });
 
-            Debug.WriteLine($"{MaxParallel}:{(DateTime.Now - date).TotalSeconds}");
+                Debug.WriteLine($"{MaxParallel}:{(DateTime.Now - date).TotalSeconds}");
+            }
+            finally
+            {
+
+            }
         }
 
         public string GetUniqueFileName(string filePath)
