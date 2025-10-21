@@ -110,6 +110,8 @@ namespace GinkgoImageConverter
                         File.Delete(file.Path);
 
                     File.SetLastWriteTime(dest, dt);
+
+                    file.Changed = true;
                 }
 
                 int current = Interlocked.Increment(ref processed);
