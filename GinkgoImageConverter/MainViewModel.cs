@@ -3,10 +3,10 @@ using CommunityToolkit.Mvvm.Input;
 using GinkgoImageConverter.Models;
 using MultiLanguageForXAML;
 using SixLabors.ImageSharp;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Windows;
 
 namespace GinkgoImageConverter
@@ -168,6 +168,18 @@ namespace GinkgoImageConverter
             int i = 0;
             foreach (var file in files)
             {
+                if (!File.Exists(file))
+                    continue;
+
+                var ext = System.IO.Path.GetExtension(file);
+                if (string.IsNullOrWhiteSpace(ext))
+                    continue;
+
+                // 先按扩展名快速过滤，再用 Identify 校验文件头
+                if (!IsSupportedImageExt(ext))
+                    continue;
+                if (!IsValidImage(file))
+                    continue;
                 Files.Add(new FileItem() { Path = file });
                 StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", i.ToString()).Replace("{1}", files.Count().ToString());
                 //await Task.Delay(1);
@@ -183,6 +195,41 @@ namespace GinkgoImageConverter
             {
                 await AddFiles(Directory.EnumerateFiles(folder, "*.*", SearchOption.AllDirectories).ToArray());
                 await Task.Delay(new TimeSpan(0, 0, 0, 0, 1));
+            }
+        }
+
+        // 本地函数：扩展名白名单（可按需增减）
+        static bool IsSupportedImageExt(string extension)
+        {
+            switch (extension.ToLowerInvariant())
+            {
+                case ".jpg":
+                case ".jpeg":
+                case ".png":
+                case ".bmp":
+                case ".gif":
+                case ".tif":
+                case ".tiff":
+                case ".webp":
+                case ".tga":
+                case ".pbm":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        // 本地函数：用 ImageSharp 校验是否真的是图片（读文件头，开销很小）
+        static bool IsValidImage(string filePath)
+        {
+            try
+            {
+                using var stream = File.OpenRead(filePath);
+                return SixLabors.ImageSharp.Image.Identify(stream) != null;
+            }
+            catch
+            {
+                return false;
             }
         }
 
