@@ -13,7 +13,7 @@ namespace GinkgoImageConverter
 {
     public partial class MainViewModel : ObservableObject
     {
-        string version = "v1.0";
+        string version = "v1.1";
 
         public MainViewModel()
         {
