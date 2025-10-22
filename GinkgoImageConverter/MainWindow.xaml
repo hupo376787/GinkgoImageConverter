@@ -33,7 +33,7 @@
     <Grid Margin="0,0,0,8">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="344" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
@@ -56,10 +56,24 @@
               SelectedItem="{Binding SelectedImageFormat}" />
             <CheckBox
               x:Name="cbDeleteSource"
+              Width="92"
               Margin="8,0,0,0"
               VerticalAlignment="Center"
               lan:Xaml.Key="delete_original"
               IsChecked="{Binding DeleteSource}" />
+            <controls:TextBox
+              Width="100"
+              Height="30"
+              MinHeight="22"
+              Margin="8,0,0,0"
+              BorderBrush="#c8cdd1"
+              Cursor="IBeam"
+              Text="{Binding MinSize}"
+              Watermark="{Binding MinSizeWatermark}">
+              <controls:TextBox.ToolTip>
+                <TextBlock lan:Xaml.Key="min_file_size1" />
+              </controls:TextBox.ToolTip>
+            </controls:TextBox>
           </StackPanel>
           <StackPanel
             x:Name="stQualityArea"
@@ -71,7 +85,7 @@
               lan:Xaml.Key="image_quality" />
             <Slider
               x:Name="sliderQuality"
-              Width="200"
+              Width="222"
               Margin="8,0,0,0"
               VerticalAlignment="Center"
               Maximum="100"
@@ -95,7 +109,7 @@
               lan:Xaml.Key="max_parallel" />
             <Slider
               x:Name="sliderParallelAmount"
-              Width="200"
+              Width="222"
               Margin="8,0,0,0"
               VerticalAlignment="Center"
               Maximum="100"
@@ -213,36 +227,6 @@
         BorderThickness="1,0,0,0">
         <Grid>
           <Button
-            Width="24"
-            Height="24"
-            Margin="12,0,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            local:ButtonExtensions.CornerRadius="12"
-            BorderThickness="0"
-            Command="{Binding ChangeLanguageCommand}"
-            Content="{Binding CurrentLanguage}"
-            Style="{StaticResource CustomCornerButtonStyle}">
-            <Button.ToolTip>
-              <TextBlock lan:Xaml.Key="language" />
-            </Button.ToolTip>
-          </Button>
-          <Button
-            Width="24"
-            Height="24"
-            Margin="0,0,0,0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            local:ButtonExtensions.CornerRadius="12"
-            BorderThickness="0"
-            Command="{Binding AboutCommand}"
-            Content="i"
-            Style="{StaticResource CustomCornerButtonStyle}">
-            <Button.ToolTip>
-              <TextBlock lan:Xaml.Key="about" />
-            </Button.ToolTip>
-          </Button>
-          <Button
             Grid.Row="1"
             Width="88"
             Height="88"
@@ -259,6 +243,36 @@
                 Margin="0,4,0,0"
                 Source="/Images/github.png" />
             </StackPanel>
+          </Button>
+          <Button
+            Width="24"
+            Height="24"
+            Margin="4,0,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            local:ButtonExtensions.CornerRadius="12"
+            BorderThickness="0"
+            Command="{Binding ChangeLanguageCommand}"
+            Content="{Binding CurrentLanguage}"
+            Style="{StaticResource CustomCornerButtonStyle}">
+            <Button.ToolTip>
+              <TextBlock lan:Xaml.Key="language" />
+            </Button.ToolTip>
+          </Button>
+          <Button
+            Width="24"
+            Height="24"
+            Margin="0,0,-8,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            local:ButtonExtensions.CornerRadius="12"
+            BorderThickness="0"
+            Command="{Binding AboutCommand}"
+            Content="i"
+            Style="{StaticResource CustomCornerButtonStyle}">
+            <Button.ToolTip>
+              <TextBlock lan:Xaml.Key="about" />
+            </Button.ToolTip>
           </Button>
         </Grid>
       </Border>

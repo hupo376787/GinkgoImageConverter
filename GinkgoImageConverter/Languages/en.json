@@ -14,12 +14,14 @@
   "add_files_via_dragdrop": "Add files via drag & drop",
   "ready": "Ready",
   "about": "About",
-  "changed_x_files": "Changed {0}/{1} files",
+  "changed_x_files": "Changed {0}/{1} files, skipped {2} files",
   "found_x_files": "Found {0} files",
   "adding_files": "Adding file {0}/{1}",
   "added_x_files": "Added {0} files",
   "reordering_files": "Reordering files...",
   "max_parallel": "Max Parallels",
   "delete_original": "Delete Source",
-  "image_quality": "Image Quality"
+  "image_quality": "Image Quality",
+  "min_file_size": "MinSize(MB)",
+  "min_file_size1": "Files less than this value will be ignored\r\n0 means no limit"
 }

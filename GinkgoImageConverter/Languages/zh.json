@@ -14,12 +14,14 @@
   "add_files_via_dragdrop": "拖拽文件到列表以添加文件",
   "ready": "准备就绪",
   "about": "关于",
-  "changed_x_files": "已修改 {0}/{1} 个文件",
+  "changed_x_files": "已修改 {0}/{1} 个文件，跳过 {2} 个文件",
   "found_x_files": "已发现 {0} 个文件",
   "adding_files": "正在添加 {0}/{1}",
   "added_x_files": "已添加 {0} 个文件",
   "reordering_files": "正在排序...",
   "max_parallel": "并发数",
-  "delete_original": "转换后删除源文件",
-  "image_quality": "图像质量"
+  "delete_original": "删除源文件",
+  "image_quality": "图像质量",
+  "min_file_size": "最小(MB)",
+  "min_file_size1": "小于该值的文件大小不做转换\r\n0不做限制"
 }

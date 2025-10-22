@@ -7,6 +7,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows;
 
 namespace GinkgoImageConverter
@@ -18,6 +19,7 @@ namespace GinkgoImageConverter
         public MainViewModel()
         {
             StatusDescription = LanService.Get("ready")!;
+            MinSizeWatermark = LanService.Get("min_file_size")!;
             ImageFormats = new ObservableCollection<string>() { "webp", "jpeg", "jpg", "bmp", "png", "tif", "tiff" };
             Files.CollectionChanged += Files_CollectionChanged;
         }
@@ -42,6 +44,10 @@ namespace GinkgoImageConverter
         private string selectedImageFormat = "webp";
         [ObservableProperty]
         private bool deleteSource;
+        [ObservableProperty]
+        private string minSizeWatermark;
+        [ObservableProperty]
+        private double minSize = 1.0;
 
         private void Files_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -83,10 +89,53 @@ namespace GinkgoImageConverter
                     MaxDegreeOfParallelism = MaxParallel
                 };
 
-                int processed = 0;
+                int processed = 0;     // 总推进（包含转换与跳过），用于进度
+                int converted = 0;     // 已转换数量
+                int skipped = 0;       // 跳过数量
+
+                // 说明：MinSize 按 MB 处理（用户在 UI 输入的数值视为 MB）
+                long minBytesThreshold = MinSize > 0 ? (long)(MinSize * 1024 * 1024) : 0;
 
                 await Parallel.ForEachAsync(items, options, async (file, token) =>
                 {
+                    // 先检查文件大小（字节）
+                    long fileSize;
+                    try
+                    {
+                        fileSize = new FileInfo(file.Path).Length;
+                    }
+                    catch
+                    {
+                        // 无法访问文件 -> 视为跳过
+                        Interlocked.Increment(ref skipped);
+                        int curErr = Interlocked.Increment(ref processed);
+
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            Progress = total == 0 ? 0 : curErr * 1.0 / total;
+                            StatusDescription = LanService.Get("changed_x_files")!
+                            .Replace("{0}", converted.ToString()).Replace("{1}", total.ToString()).Replace("{2}", skipped.ToString());
+                        });
+                        return;
+                    }
+
+                    // 如果设置了最小尺寸且文件小于阈值，则跳过转换
+                    if (minBytesThreshold > 0 && fileSize < minBytesThreshold)
+                    {
+                        Interlocked.Increment(ref skipped);
+                        int curSkip = Interlocked.Increment(ref processed);
+
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            // 跳过时不标记为 Changed
+                            file.Changed = false;
+                            Progress = total == 0 ? 0 : curSkip * 1.0 / total;
+                            StatusDescription = LanService.Get("changed_x_files")!
+                            .Replace("{0}", converted.ToString()).Replace("{1}", total.ToString()).Replace("{2}", skipped.ToString());
+                        });
+                        return;
+                    }
+
                     var dt = File.GetLastWriteTime(file.Path);
 
                     using (var image = SixLabors.ImageSharp.Image.Load(file.Path))
@@ -119,6 +168,7 @@ namespace GinkgoImageConverter
                         File.SetLastWriteTime(dest, dt);
                     }
 
+                    Interlocked.Increment(ref converted);
                     int current = Interlocked.Increment(ref processed);
 
                     // 将 UI 更新与对象属性变更放到 UI 线程
@@ -127,7 +177,7 @@ namespace GinkgoImageConverter
                         file.Changed = true;
                         Progress = total == 0 ? 0 : current * 1.0 / total;
                         StatusDescription = LanService.Get("changed_x_files")!
-                            .Replace("{0}", current.ToString()).Replace("{1}", total.ToString());
+                            .Replace("{0}", converted.ToString()).Replace("{1}", total.ToString()).Replace("{2}", skipped.ToString());
                     });
                 });
 
@@ -295,6 +345,7 @@ namespace GinkgoImageConverter
                 CurrentLanguage = "en";
             }
             StatusDescription = LanService.Get("ready")!;
+            MinSizeWatermark = LanService.Get("min_file_size")!;
         }
 
         [RelayCommand]
