@@ -127,7 +127,7 @@ namespace GinkgoImageConverter
                         file.Changed = true;
                         Progress = total == 0 ? 0 : current * 1.0 / total;
                         StatusDescription = LanService.Get("changed_x_files")!
-                            .Replace("{0}", current.ToString());
+                            .Replace("{0}", current.ToString()).Replace("{1}", total.ToString());
                     });
                 });
 
