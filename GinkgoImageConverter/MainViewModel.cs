@@ -219,7 +219,7 @@ namespace GinkgoImageConverter
             int total = files?.Length ?? 0;
             Application.Current.Dispatcher.Invoke(() =>
             {
-                StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", total.ToString());
+                StatusDescription = LanService.Get("found_x_files")!.Replace("{0}", total.ToString());
             });
 
             int addedCount = 0;
