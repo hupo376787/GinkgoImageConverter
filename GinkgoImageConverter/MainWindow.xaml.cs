@@ -1,20 +1,8 @@
-﻿using GinkgoImageConverter.Models;
-using MicaWPF.Controls;
+﻿using MicaWPF.Controls;
 using MultiLanguageForXAML;
 using System.Diagnostics;
 using System.IO;
-using System.Net.NetworkInformation;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace GinkgoImageConverter;
 
@@ -26,6 +14,15 @@ public partial class MainWindow : MicaWindow
     public MainWindow()
     {
         InitializeComponent();
+    }
+
+    protected override async void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        bool? result = await NiceMessageBox.Show(LanService.Get("exit_confirm")!, this);
+        if (result == false)
+            e.Cancel = true;
+
+        base.OnClosing(e);
     }
 
     private void MyListView_DragEnter(object sender, DragEventArgs e)

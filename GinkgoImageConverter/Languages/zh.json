@@ -23,5 +23,8 @@
   "delete_original": "删除源文件",
   "image_quality": "图像质量",
   "min_file_size": "最小(MB)",
-  "min_file_size1": "小于该值的文件大小不做转换\r\n0不做限制"
+  "min_file_size1": "小于该值的文件大小不做转换\r\n0不做限制",
+  "exit_confirm": "确定退出App?",
+  "yes": "是",
+  "no": "否"
 }

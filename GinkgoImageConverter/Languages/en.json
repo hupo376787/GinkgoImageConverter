@@ -23,5 +23,8 @@
   "delete_original": "Delete Source",
   "image_quality": "Image Quality",
   "min_file_size": "MinSize(MB)",
-  "min_file_size1": "Files less than this value will be ignored\r\n0 means no limit"
+  "min_file_size1": "Files less than this value will be ignored\r\n0 means no limit",
+  "exit_confirm": "Exit App?",
+  "yes": "YES",
+  "no": "NO"
 }

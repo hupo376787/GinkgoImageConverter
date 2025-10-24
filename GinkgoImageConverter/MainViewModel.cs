@@ -8,13 +8,14 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace GinkgoImageConverter
 {
     public partial class MainViewModel : ObservableObject
     {
-        string version = "v1.2";
+        string version = "v1.3";
 
         public MainViewModel()
         {
@@ -214,29 +215,76 @@ namespace GinkgoImageConverter
 
         public async Task AddFiles(string[] files)
         {
-            StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", files.Count().ToString());
-            int i = 0;
-            foreach (var file in files)
+            //现在将耗时的校验与 IO 放到后台线程，在后台收集要添加的项，然后以批次方式在 UI线程一次性添加，减少 UI 刷新次数，避免卡死
+            int total = files?.Length ?? 0;
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                if (!File.Exists(file))
-                    continue;
+                StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", total.ToString());
+            });
 
-                var ext = System.IO.Path.GetExtension(file);
-                if (string.IsNullOrWhiteSpace(ext))
-                    continue;
+            int addedCount = 0;
+            const int batchSize = 1000; // 每次在 UI线程添加的批次大小，可调整
+            var batch = new List<FileItem>(batchSize);
 
-                // 先按扩展名快速过滤，再用 Identify 校验文件头
-                if (!IsSupportedImageExt(ext))
-                    continue;
-                if (!IsValidImage(file))
-                    continue;
-                Files.Add(new FileItem() { Path = file });
-                StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", i.ToString()).Replace("{1}", files.Count().ToString());
-                //await Task.Delay(1);
-                i++;
-            }
-            ReorderId();
-            StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", i.ToString());
+            await Task.Run(async () =>
+            {
+                for (int idx = 0; idx < total; idx++)
+                {
+                    var file = files[idx];
+
+                    if (!File.Exists(file))
+                        continue;
+
+                    var ext = System.IO.Path.GetExtension(file);
+                    if (string.IsNullOrWhiteSpace(ext))
+                        continue;
+
+                    //先按扩展名快速过滤，再用 Identify 校验文件头
+                    if (!IsSupportedImageExt(ext))
+                        continue;
+                    if (!IsValidImage(file))
+                        continue;
+
+                    batch.Add(new FileItem() { Path = file });
+                    addedCount++;
+
+                    if (batch.Count >= batchSize)
+                    {
+                        var toAdd = batch.ToArray();
+                        batch.Clear();
+
+                        // 在 UI线程批量添加，减少 ObservableCollection 的频繁通知
+                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            foreach (var it in toAdd)
+                                Files.Add(it);
+
+                            StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", addedCount.ToString()).Replace("{1}", total.ToString());
+                        });
+                    }
+                }
+
+                // 添加剩余的
+                if (batch.Count > 0)
+                {
+                    var toAdd = batch.ToArray();
+                    batch.Clear();
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        foreach (var it in toAdd)
+                            Files.Add(it);
+
+                        StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", addedCount.ToString()).Replace("{1}", total.ToString());
+                    });
+                }
+            });
+
+            // 最终整理与状态更新在 UI线程完成
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                ReorderId();
+                StatusDescription = LanService.Get("added_x_files")!.Replace("{0}", addedCount.ToString());
+            });
         }
 
         public async Task AddFolders(string[] folders)
