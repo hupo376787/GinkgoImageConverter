@@ -15,7 +15,7 @@ namespace GinkgoImageConverter
 {
     public partial class MainViewModel : ObservableObject
     {
-        string version = "v1.3";
+        string version = "v1.4";
 
         public MainViewModel()
         {
@@ -307,6 +307,7 @@ namespace GinkgoImageConverter
                 case ".bmp":
                 case ".gif":
                 case ".tif":
+                case ".jif":
                 case ".tiff":
                 case ".webp":
                 case ".tga":
